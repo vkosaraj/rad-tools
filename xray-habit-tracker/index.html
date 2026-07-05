@@ -3,27 +3,140 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>X-ray Habit Tracker — placeholder</title>
+<title>X-ray Habit Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#EEF1F3;color:#14181C;padding:24px}
-  .card{max-width:520px;background:#fff;border:1px solid #D5DBDF;border-radius:4px;padding:32px 30px}
-  .tag{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:.14em;
-    text-transform:uppercase;color:#0B6E75;margin:0 0 14px}
-  h1{font-size:22px;letter-spacing:-.01em;margin:0 0 12px}
-  p{color:#616B74;font-size:14px;line-height:1.6;margin:0 0 10px}
-  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;
-    background:#EEF1F3;border:1px solid #E4E8EB;border-radius:3px;padding:1px 6px}
-  a{color:#0B6E75}
+  :root{
+    --panel:#EEF1F3;--surface:#FFFFFF;--ink:#14181C;--ink-soft:#616B74;
+    --line:#D5DBDF;--line-2:#E4E8EB;--accent:#0B6E75;--accent-ink:#085056;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --display:"Space Grotesk",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--panel);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 20px 80px}
+  .wrap{max-width:720px;margin:0 auto}
+  header{padding:44px 0 0}
+  .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  a.back{font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none}
+  a.back:hover{text-decoration:underline}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0 0 14px}
+  .overlay{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);display:flex;gap:18px;flex-wrap:wrap;margin:0 0 8px}
+  .overlay b{color:var(--ink)}
+  .wedge{height:8px;border:1px solid var(--line);margin:0 0 32px;background:linear-gradient(90deg,#000 0 9.09%,#1a1a1a 9.09% 18.18%,#333 18.18% 27.27%,#4d4d4d 27.27% 36.36%,#666 36.36% 45.45%,#808080 45.45% 54.54%,#999 54.54% 63.63%,#b3b3b3 63.63% 72.72%,#ccc 72.72% 81.81%,#e6e6e6 81.81% 90.9%,#fff 90.9% 100%)}
+
+  .category{background:var(--surface);border:1px solid var(--line);border-radius:4px;margin-bottom:12px;overflow:hidden}
+  .cat-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+  .cat-head:hover{background:#fafbfc}
+  .chev{font-family:var(--mono);color:var(--ink-soft);font-size:13px;transition:transform .15s ease;width:12px}
+  .category.collapsed .chev{transform:rotate(-90deg)}
+  .cat-name{font-family:var(--display);font-weight:600;font-size:16px;flex:1}
+  .count{font-family:var(--mono);font-size:11px;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line-2);border-radius:2px;padding:1px 7px}
+  .cat-body{padding:0 16px 14px}
+  .category.collapsed .cat-body{display:none}
+  ul{list-style:none;margin:0 0 10px;padding:0}
+  li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--line-2);font-size:14px}
+  li:first-child{border-top:none}
+  li .txt{flex:1}
+  .rm{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;border-radius:3px}
+  .rm:hover{color:#b4232a;background:#fbeaea}
+  .empty{color:var(--ink-soft);font-size:13px;font-style:italic;padding:6px 0}
+  .add{display:flex;gap:8px}
+  input[type=text]{flex:1;font-family:var(--sans);font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink)}
+  input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(11,110,117,.15)}
+  .addbtn{font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 14px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:3px;cursor:pointer}
+  .addbtn:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-  <div class="card">
-    <p class="tag">placeholder · replace me</p>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <p class="eyebrow">Radiology · Reading Aid</p>
+      <a class="back" href="../">← Reading Station</a>
+    </div>
     <h1>X-ray Habit Tracker</h1>
-    <p>This folder is wired into the landing page, but the real tool isn't here yet. Replace this file with your tool's HTML — keep the filename <code>index.html</code>.</p>
-    <p>Path: <code>xray-habit-tracker/index.html</code></p>
-    <p><a href="../">← back to Reading Station</a></p>
-  </div>
+    <div class="overlay"><span>ITEMS: <b id="total">0</b></span><span>STORAGE: <b>local</b></span></div>
+    <div class="wedge"></div>
+  </header>
+  <div id="app"></div>
+</div>
+
+<script>
+  const CATEGORIES = [
+    "Below Knee X-rays","Shoulder X-rays","Pelvis / Hip X-rays",
+    "Hand & Wrist X-rays","Ankle & Foot X-rays","Chest X-rays","General Habits"
+  ];
+  const KEY = "xrayHabits";
+
+  function load(){
+    let data = {};
+    try { data = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ data = {}; }
+    CATEGORIES.forEach(c => { if(!Array.isArray(data[c])) data[c] = []; });
+    return data;
+  }
+  function save(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+  let state = load();
+  const collapsed = {};
+
+  function render(){
+    const app = document.getElementById("app");
+    app.innerHTML = "";
+    let total = 0;
+    CATEGORIES.forEach(cat => {
+      const items = state[cat];
+      total += items.length;
+      const card = document.createElement("div");
+      card.className = "category" + (collapsed[cat] ? " collapsed" : "");
+
+      const head = document.createElement("div");
+      head.className = "cat-head";
+      head.innerHTML = `<span class="chev">▾</span><span class="cat-name"></span><span class="count">${items.length}</span>`;
+      head.querySelector(".cat-name").textContent = cat;
+      head.onclick = () => { collapsed[cat] = !collapsed[cat]; render(); };
+      card.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "cat-body";
+      const ul = document.createElement("ul");
+      if(items.length === 0){
+        const e = document.createElement("div"); e.className = "empty"; e.textContent = "No items yet.";
+        body.appendChild(e);
+      } else {
+        items.forEach((it, i) => {
+          const li = document.createElement("li");
+          const t = document.createElement("span"); t.className = "txt"; t.textContent = it;
+          const rm = document.createElement("button"); rm.className = "rm"; rm.textContent = "×"; rm.title = "Remove";
+          rm.onclick = () => { state[cat].splice(i,1); save(state); render(); };
+          li.appendChild(t); li.appendChild(rm); ul.appendChild(li);
+        });
+        body.appendChild(ul);
+      }
+
+      const add = document.createElement("div"); add.className = "add";
+      const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "Add a reading habit…";
+      const btn = document.createElement("button"); btn.className = "addbtn"; btn.textContent = "Add";
+      const commit = () => {
+        const v = inp.value.trim();
+        if(v){ state[cat].push(v); save(state); render(); }
+      };
+      btn.onclick = commit;
+      inp.addEventListener("keydown", e => { if(e.key === "Enter") commit(); });
+      add.appendChild(inp); add.appendChild(btn);
+      body.appendChild(add);
+
+      card.appendChild(body);
+      app.appendChild(card);
+    });
+    document.getElementById("total").textContent = total;
+  }
+  render();
+</script>
 </body>
 </html>

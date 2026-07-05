@@ -3,27 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flexor Tendon Lesions — placeholder</title>
+<title>Flexor Tendon Lesions — Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#EEF1F3;color:#14181C;padding:24px}
-  .card{max-width:520px;background:#fff;border:1px solid #D5DBDF;border-radius:4px;padding:32px 30px}
-  .tag{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:.14em;
-    text-transform:uppercase;color:#0B6E75;margin:0 0 14px}
-  h1{font-size:22px;letter-spacing:-.01em;margin:0 0 12px}
-  p{color:#616B74;font-size:14px;line-height:1.6;margin:0 0 10px}
-  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;
-    background:#EEF1F3;border:1px solid #E4E8EB;border-radius:3px;padding:1px 6px}
-  a{color:#0B6E75}
+  :root{
+    --panel:#EEF1F3;--surface:#FFFFFF;--ink:#14181C;--ink-soft:#616B74;
+    --line:#D5DBDF;--line-2:#E4E8EB;--accent:#0B6E75;--accent-ink:#085056;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --display:"Space Grotesk",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--panel);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 20px 80px}
+  .wrap{max-width:680px;margin:0 auto}
+  header{padding:44px 0 0}
+  .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  a.back{font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none}
+  a.back:hover{text-decoration:underline}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,5vw,38px);letter-spacing:-.02em;margin:0 0 14px}
+  .wedge{height:8px;border:1px solid var(--line);margin:0 0 20px;background:linear-gradient(90deg,#000 0 9.09%,#1a1a1a 9.09% 18.18%,#333 18.18% 27.27%,#4d4d4d 27.27% 36.36%,#666 36.36% 45.45%,#808080 45.45% 54.54%,#999 54.54% 63.63%,#b3b3b3 63.63% 72.72%,#ccc 72.72% 81.81%,#e6e6e6 81.81% 90.9%,#fff 90.9% 100%)}
+
+  .review-note{font-family:var(--mono);font-size:11px;color:var(--accent-ink);background:#e7f0f0;border:1px solid #cfe3e3;border-radius:3px;padding:8px 12px;margin:0 0 18px;line-height:1.5}
+
+  .progress{height:4px;background:var(--line-2);border-radius:2px;overflow:hidden;margin-bottom:6px}
+  .progress .fill{height:100%;background:var(--accent);transition:width .2s ease}
+  .meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-bottom:16px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;min-height:280px;padding:30px 28px;display:flex;flex-direction:column;cursor:pointer;position:relative}
+  .card:focus-visible{outline:none;box-shadow:0 0 0 2px var(--accent)}
+  .side-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px}
+  .card .content{flex:1;display:flex;align-items:center}
+  .card .content .q{font-family:var(--display);font-weight:600;font-size:22px;line-height:1.3;letter-spacing:-.01em}
+  .card .content .a{font-size:16px;line-height:1.55}
+  .flip-hint{font-family:var(--mono);font-size:10px;color:var(--ink-soft);text-align:center;margin-top:12px}
+
+  .controls{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+  button{font-family:var(--sans);font-size:14px;font-weight:600;padding:10px 18px;border-radius:3px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink)}
+  button:hover{background:var(--panel)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{background:var(--accent-ink)}
+  .spacer{flex:1}
+  .mark{display:flex;gap:8px;margin-top:12px}
+  .mark button{flex:1;font-size:13px}
+  .mark .known.on{background:#e7f0f0;border-color:var(--accent);color:var(--accent-ink)}
+  .mark .rev.on{background:#fbeede;border-color:#c9793f;color:#8a4a1c}
+  .toolbar{display:flex;gap:10px;margin-top:16px;font-family:var(--mono);font-size:12px;align-items:center;color:var(--ink-soft);flex-wrap:wrap}
+  .toolbar label{cursor:pointer;user-select:none}
+  .toolbar a{color:var(--accent);cursor:pointer}
+  @media(max-width:520px){.card .content .q{font-size:19px}}
 </style>
 </head>
 <body>
-  <div class="card">
-    <p class="tag">placeholder · replace me</p>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <p class="eyebrow">MSK · Teaching File</p>
+      <a class="back" href="../">← Reading Station</a>
+    </div>
     <h1>Flexor Tendon Lesions</h1>
-    <p>This folder is wired into the landing page, but the real tool isn't here yet. Replace this file with your tool's HTML — keep the filename <code>index.html</code>.</p>
-    <p>Path: <code>flexor-tendon-flashcards/index.html</code></p>
-    <p><a href="../">← back to Reading Station</a></p>
+    <div class="wedge"></div>
+    <p class="review-note">Seeded with sample cards — verify against your source article and edit the <b>CARDS</b> array near the top of this file before relying on it for teaching.</p>
+  </header>
+
+  <div class="progress"><div class="fill" id="pfill"></div></div>
+  <div class="meta"><span id="pos">1 / 1</span><span id="deckname">full deck</span></div>
+
+  <div class="card" id="card" tabindex="0">
+    <div class="side-label" id="side">Question</div>
+    <div class="content"><div id="face" class="q"></div></div>
+    <div class="flip-hint">click card or press space to flip</div>
   </div>
+
+  <div class="mark">
+    <button class="known" id="knownBtn">✓ Got it</button>
+    <button class="rev" id="revBtn">↻ Review</button>
+  </div>
+
+  <div class="controls">
+    <button id="prev">← Prev</button>
+    <button class="primary" id="next">Next →</button>
+    <span class="spacer"></span>
+    <button id="shuffle">Shuffle</button>
+  </div>
+
+  <div class="toolbar">
+    <label><input type="checkbox" id="revOnly"> review-only</label>
+    <span>·</span>
+    <a id="resetProg">reset progress</a>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // EDIT HERE — replace with the cards from your article.
+  // Each card: { q: "front / question", a: "back / answer" }
+  // ============================================================
+  const CARDS = [
+    { q:"How many flexor tendon zones are in the hand, and which is 'no man's land'?",
+      a:"Five zones (I–V). Zone II is 'no man's land' — FDS and FDP run together inside the flexor sheath here; repairs are prone to adhesions and historically had poor outcomes." },
+    { q:"Where do FDS and FDP insert?",
+      a:"FDS inserts on the volar base of the MIDDLE phalanx (splitting at Camper's chiasm). FDP inserts on the volar base of the DISTAL phalanx." },
+    { q:"What is Camper's chiasm?",
+      a:"In Zone II, FDS splits into two slips that decussate around FDP and reunite before inserting on the middle phalanx — letting FDP pass through to reach the distal phalanx." },
+    { q:"What is 'jersey finger'?",
+      a:"Avulsion of FDP from its distal phalanx insertion — classically the ring finger — from forced extension of an actively flexed DIP (e.g. grabbing a jersey). Graded by the Leddy–Packer classification." },
+    { q:"The Leddy–Packer classification grades what?",
+      a:"FDP avulsion (jersey finger), by degree of tendon retraction and presence/size of any avulsed bony fragment — which guides surgical urgency." },
+    { q:"Which annular pulleys are most biomechanically important?",
+      a:"A2 (over the proximal phalanx) and A4 (over the middle phalanx) — most critical for preventing tendon bowstringing." },
+    { q:"Rock-climber pulley injury: which pulleys, and how is it imaged?",
+      a:"Typically A2 ± A3/A4 rupture. US or MRI shows increased tendon-to-bone distance (bowstringing), accentuated by resisted flexion on dynamic ultrasound." },
+    { q:"Trigger finger — what and where is the pathology?",
+      a:"Stenosing tenosynovitis at the A1 pulley (MCP level): nodular thickening of the tendon/sheath causing catching or locking during flexion." },
+    { q:"Ultrasound findings of flexor tenosynovitis?",
+      a:"Anechoic/hypoechoic fluid distending the tendon sheath (target/halo on transverse), synovial thickening, and hyperemia on Doppler when inflammatory or infectious." },
+    { q:"Normal vs torn flexor tendon on MRI?",
+      a:"Normal: uniformly low signal on all sequences (fibrillar, anisotropic on US). Tear: discontinuity, retraction, or a T2-hyperintense fluid gap at the tendon." }
+  ];
+  // ============================================================
+
+  const KEY = "flexorProgress";
+  const $ = id => document.getElementById(id);
+  let progress = {};
+  try { progress = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ progress = {}; }
+  function saveProg(){ localStorage.setItem(KEY, JSON.stringify(progress)); }
+
+  let order = CARDS.map((_,i)=>i);
+  let pos = 0, flipped = false, revOnly = false;
+
+  function deck(){ return revOnly ? order.filter(i => progress[i]==="review") : order; }
+
+  function current(){
+    const d = deck();
+    if(!d.length) return null;
+    if(pos >= d.length) pos = 0;
+    return d[pos];
+  }
+
+  function render(){
+    const d = deck();
+    const idx = current();
+    if(idx === null){
+      $("face").innerHTML = "Nothing marked for review. Uncheck review-only to see the full deck.";
+      $("side").textContent = "";
+      $("pos").textContent = "0 / 0";
+      $("pfill").style.width = "0%";
+      $("knownBtn").classList.remove("on"); $("revBtn").classList.remove("on");
+      return;
+    }
+    const c = CARDS[idx];
+    $("side").textContent = flipped ? "Answer" : "Question";
+    $("face").className = flipped ? "a" : "q";
+    $("face").textContent = flipped ? c.a : c.q;
+    $("pos").textContent = (pos+1) + " / " + d.length;
+    $("deckname").textContent = revOnly ? "review deck" : "full deck";
+    $("pfill").style.width = ((pos+1)/d.length*100) + "%";
+    $("knownBtn").classList.toggle("on", progress[idx]==="known");
+    $("revBtn").classList.toggle("on", progress[idx]==="review");
+  }
+
+  function flip(){ flipped = !flipped; render(); }
+  function next(){ const d=deck(); if(!d.length)return; pos=(pos+1)%d.length; flipped=false; render(); }
+  function prev(){ const d=deck(); if(!d.length)return; pos=(pos-1+d.length)%d.length; flipped=false; render(); }
+
+  $("card").onclick = flip;
+  $("next").onclick = next;
+  $("prev").onclick = prev;
+  $("shuffle").onclick = () => {
+    for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+    pos=0; flipped=false; render();
+  };
+  $("knownBtn").onclick = () => { const i=current(); if(i===null)return; progress[i]= progress[i]==="known"?null:"known"; saveProg(); render(); };
+  $("revBtn").onclick   = () => { const i=current(); if(i===null)return; progress[i]= progress[i]==="review"?null:"review"; saveProg(); render(); };
+  $("revOnly").onchange = e => { revOnly=e.target.checked; pos=0; flipped=false; render(); };
+  $("resetProg").onclick = () => { if(confirm("Reset all got-it / review marks?")){ progress={}; saveProg(); render(); } };
+
+  document.addEventListener("keydown", e => {
+    if(e.target.tagName === "INPUT") return;
+    if(e.key===" "||e.key==="Enter"){ e.preventDefault(); flip(); }
+    else if(e.key==="ArrowRight") next();
+    else if(e.key==="ArrowLeft") prev();
+  });
+
+  render();
+</script>
 </body>
 </html>

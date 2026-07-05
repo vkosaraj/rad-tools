@@ -3,27 +3,203 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CT Chest Study Tracker — placeholder</title>
+<title>CT Chest Study Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#EEF1F3;color:#14181C;padding:24px}
-  .card{max-width:520px;background:#fff;border:1px solid #D5DBDF;border-radius:4px;padding:32px 30px}
-  .tag{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:.14em;
-    text-transform:uppercase;color:#0B6E75;margin:0 0 14px}
-  h1{font-size:22px;letter-spacing:-.01em;margin:0 0 12px}
-  p{color:#616B74;font-size:14px;line-height:1.6;margin:0 0 10px}
-  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;
-    background:#EEF1F3;border:1px solid #E4E8EB;border-radius:3px;padding:1px 6px}
-  a{color:#0B6E75}
+  :root{
+    --panel:#EEF1F3;--surface:#FFFFFF;--ink:#14181C;--ink-soft:#616B74;
+    --line:#D5DBDF;--line-2:#E4E8EB;--accent:#0B6E75;--accent-ink:#085056;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --display:"Space Grotesk",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--panel);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 20px 80px}
+  .wrap{max-width:760px;margin:0 auto}
+  header{padding:44px 0 0}
+  .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  a.back{font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none}
+  a.back:hover{text-decoration:underline}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0 0 14px}
+  .wedge{height:8px;border:1px solid var(--line);margin:0 0 28px;background:linear-gradient(90deg,#000 0 9.09%,#1a1a1a 9.09% 18.18%,#333 18.18% 27.27%,#4d4d4d 27.27% 36.36%,#666 36.36% 45.45%,#808080 45.45% 54.54%,#999 54.54% 63.63%,#b3b3b3 63.63% 72.72%,#ccc 72.72% 81.81%,#e6e6e6 81.81% 90.9%,#fff 90.9% 100%)}
+
+  .panelbox{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:22px;margin-bottom:16px}
+  .timer{font-family:var(--mono);font-size:56px;font-weight:500;letter-spacing:.02em;text-align:center;margin:6px 0 18px;font-variant-numeric:tabular-nums}
+  .timer.running{color:var(--accent)}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+  button{font-family:var(--sans);font-size:14px;font-weight:600;padding:9px 20px;border-radius:3px;cursor:pointer;border:1px solid var(--line)}
+  .primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .primary:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+  .ghost{background:#fff;color:var(--ink)}
+  .ghost:hover{background:var(--panel)}
+  .labelrow{display:flex;gap:8px;justify-content:center}
+  input[type=text]{font-family:var(--sans);font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;width:min(360px,100%);background:#fff;color:var(--ink)}
+  input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(11,110,117,.15)}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 16px}
+  .stat .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+  .stat .v{font-family:var(--display);font-weight:600;font-size:26px;margin-top:4px;font-variant-numeric:tabular-nums}
+
+  .logwrap{background:var(--surface);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .loghead{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .loghead h2{font-family:var(--display);font-weight:500;font-size:15px;margin:0}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);text-align:left;padding:10px 16px;border-bottom:1px solid var(--line-2);font-weight:500}
+  td{padding:10px 16px;border-bottom:1px solid var(--line-2)}
+  td.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  .rm{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;padding:0 4px}
+  .rm:hover{color:#b4232a}
+  .empty{padding:24px 16px;text-align:center;color:var(--ink-soft);font-size:13px;font-style:italic}
+  .csvbtn{font-size:12px;font-weight:600;padding:6px 12px}
+  @media(max-width:560px){.stats{grid-template-columns:1fr 1fr}.timer{font-size:44px}}
 </style>
 </head>
 <body>
-  <div class="card">
-    <p class="tag">placeholder · replace me</p>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <p class="eyebrow">Radiology · Throughput</p>
+      <a class="back" href="../">← Reading Station</a>
+    </div>
     <h1>CT Chest Study Tracker</h1>
-    <p>This folder is wired into the landing page, but the real tool isn't here yet. Replace this file with your tool's HTML — keep the filename <code>index.html</code>.</p>
-    <p>Path: <code>ct-chest-tracker/index.html</code></p>
-    <p><a href="../">← back to Reading Station</a></p>
+    <div class="wedge"></div>
+  </header>
+
+  <div class="panelbox">
+    <div class="timer" id="timer">00:00</div>
+    <div class="controls">
+      <button class="primary" id="startBtn">Start</button>
+      <button class="ghost" id="logBtn" disabled>Log study</button>
+      <button class="ghost" id="resetBtn">Reset timer</button>
+    </div>
+    <div class="labelrow">
+      <input type="text" id="label" placeholder="Optional label / accession (e.g. CTA chest PE)">
+    </div>
   </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Studies</div><div class="v" id="sCount">0</div></div>
+    <div class="stat"><div class="k">Total time</div><div class="v" id="sTotal">0:00</div></div>
+    <div class="stat"><div class="k">Avg / study</div><div class="v" id="sAvg">0:00</div></div>
+  </div>
+
+  <div class="logwrap">
+    <div class="loghead">
+      <h2>Session log</h2>
+      <div>
+        <button class="ghost csvbtn" id="csvBtn">Export CSV</button>
+        <button class="ghost csvbtn" id="clearBtn">Clear all</button>
+      </div>
+    </div>
+    <div id="logBody"></div>
+  </div>
+</div>
+
+<script>
+  const KEY = "ctChestLog";
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ log = []; }
+
+  let startTs = null, elapsed = 0, tick = null;
+  const $ = id => document.getElementById(id);
+
+  function fmt(s){ const m = Math.floor(s/60), r = s%60; return m + ":" + String(r).padStart(2,"0"); }
+  function fmtClock(s){ const m = Math.floor(s/60), r = s%60; return String(m).padStart(2,"0") + ":" + String(r).padStart(2,"0"); }
+
+  function saveLog(){ localStorage.setItem(KEY, JSON.stringify(log)); }
+
+  function updateTimer(){
+    const cur = elapsed + (startTs ? Math.floor((Date.now()-startTs)/1000) : 0);
+    $("timer").textContent = fmtClock(cur);
+  }
+  function start(){
+    if(startTs) return;
+    startTs = Date.now();
+    $("timer").classList.add("running");
+    $("startBtn").textContent = "Pause";
+    $("logBtn").disabled = false;
+    tick = setInterval(updateTimer, 500);
+  }
+  function pause(){
+    if(!startTs) return;
+    elapsed += Math.floor((Date.now()-startTs)/1000);
+    startTs = null;
+    clearInterval(tick);
+    $("timer").classList.remove("running");
+    $("startBtn").textContent = "Resume";
+    updateTimer();
+  }
+  function resetTimer(){
+    startTs = null; elapsed = 0; clearInterval(tick);
+    $("timer").classList.remove("running");
+    $("startBtn").textContent = "Start";
+    $("logBtn").disabled = true;
+    updateTimer();
+  }
+  function currentSeconds(){
+    return elapsed + (startTs ? Math.floor((Date.now()-startTs)/1000) : 0);
+  }
+  function logStudy(){
+    const secs = currentSeconds();
+    if(secs <= 0) return;
+    const now = new Date();
+    log.unshift({
+      label: $("label").value.trim() || "—",
+      seconds: secs,
+      ended: now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"}),
+      date: now.toLocaleDateString()
+    });
+    saveLog();
+    $("label").value = "";
+    resetTimer();
+    render();
+  }
+
+  $("startBtn").onclick = () => { startTs ? pause() : start(); };
+  $("logBtn").onclick = logStudy;
+  $("resetBtn").onclick = resetTimer;
+  $("clearBtn").onclick = () => { if(confirm("Clear the entire session log?")){ log = []; saveLog(); render(); } };
+  $("csvBtn").onclick = exportCSV;
+
+  function exportCSV(){
+    if(!log.length) return;
+    const rows = [["Label","Duration (s)","Duration (mm:ss)","Ended","Date"]];
+    log.slice().reverse().forEach(e => rows.push([e.label, e.seconds, fmtClock(e.seconds), e.ended, e.date]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ct-chest-log-" + new Date().toISOString().slice(0,10) + ".csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function render(){
+    const n = log.length;
+    const totalS = log.reduce((s,e)=>s+e.seconds,0);
+    $("sCount").textContent = n;
+    $("sTotal").textContent = fmt(totalS);
+    $("sAvg").textContent = n ? fmt(Math.round(totalS/n)) : "0:00";
+
+    const body = $("logBody");
+    if(!n){ body.innerHTML = '<div class="empty">No studies logged yet. Start the timer, then Log study when you sign off.</div>'; return; }
+    let html = '<table><thead><tr><th>#</th><th>Label</th><th>Duration</th><th>Ended</th><th></th></tr></thead><tbody>';
+    log.forEach((e,i) => {
+      html += `<tr><td class="mono">${n-i}</td><td>${escapeHtml(e.label)}</td><td class="mono">${fmtClock(e.seconds)}</td><td class="mono">${e.ended}</td><td><button class="rm" data-i="${i}" title="Remove">×</button></td></tr>`;
+    });
+    html += "</tbody></table>";
+    body.innerHTML = html;
+    body.querySelectorAll(".rm").forEach(b => b.onclick = () => { log.splice(+b.dataset.i,1); saveLog(); render(); });
+  }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  render();
+</script>
 </body>
 </html>
