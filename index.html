@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Station — Radiology Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --panel:   #EEF1F3;   /* calibrated-monitor neutral, cool near-white */
+    --surface: #FFFFFF;   /* film / card surface */
+    --ink:     #14181C;   /* deep slate text */
+    --ink-soft:#616B74;   /* secondary / metadata gray */
+    --line:    #D5DBDF;   /* hairline, cool gray */
+    --line-2:  #E4E8EB;   /* faint interior rule */
+    --accent:  #0B6E75;   /* diagnostic teal — instrument readout */
+    --accent-ink: #085056;
+
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; }
+
+  body {
+    background: var(--panel);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  /* ---------- Header / workstation overlay ---------- */
+  header { padding: 56px 0 0; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(34px, 6vw, 54px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+  }
+
+  .lede {
+    max-width: 54ch;
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin: 0 0 28px;
+  }
+
+  /* DICOM-style corner overlay line */
+  .overlay {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0 0 26px;
+  }
+  .overlay b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Signature: grayscale calibration wedge ---------- */
+  .wedge {
+    height: 10px;
+    width: 100%;
+    border: 1px solid var(--line);
+    background: linear-gradient(90deg,
+      #000 0 9.09%,  #1a1a1a 9.09% 18.18%, #333 18.18% 27.27%,
+      #4d4d4d 27.27% 36.36%, #666 36.36% 45.45%, #808080 45.45% 54.54%,
+      #999 54.54% 63.63%, #b3b3b3 63.63% 72.72%, #ccc 72.72% 81.81%,
+      #e6e6e6 81.81% 90.9%, #fff 90.9% 100%);
+    margin: 0 0 6px;
+  }
+  .wedge-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 48px;
+  }
+
+  /* ---------- Sections ---------- */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 0 20px;
+  }
+  .section-head h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+  .section-head .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .section-head .count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  section + section { margin-top: 52px; }
+
+  /* ---------- Tool grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  a.tool {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 20px 20px 18px;
+    position: relative;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  a.tool::before {
+    /* windowing accent bar — appears on focus/hover */
+    content: "";
+    position: absolute;
+    left: -1px; top: 16px; bottom: 16px;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+  a.tool:hover,
+  a.tool:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px -12px rgba(20,24,28,.35);
+    border-color: var(--line);
+    outline: none;
+  }
+  a.tool:hover::before,
+  a.tool:focus-visible::before { opacity: 1; }
+  a.tool:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .tool-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 12px;
+  }
+  .tag {
+    color: var(--accent-ink);
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 1px 6px;
+    background: var(--panel);
+  }
+
+  .tool h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  .tool p {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    min-height: 38px;
+  }
+  .path {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    border-top: 1px solid var(--line-2);
+    padding-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .path .arrow { color: var(--accent); }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 620px) {
+    .grid { grid-template-columns: 1fr; }
+    header { padding-top: 40px; }
+    .tool p { min-height: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    a.tool:hover, a.tool:focus-visible { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Radiology · Workflow &amp; Teaching Tools</p>
+    <h1>Reading Station</h1>
+    <p class="lede">A small collection of single-file, offline-capable tools for tracking work and teaching cases. Each one stores its data locally in the browser — nothing leaves the machine.</p>
+
+    <div class="overlay">
+      <span>STATION: <b>rad-tools</b></span>
+      <span>TOOLS: <b>04</b></span>
+      <span>STORAGE: <b>local</b></span>
+      <span>BUILD: <b>static</b></span>
+    </div>
+
+    <div class="wedge" role="presentation"></div>
+    <div class="wedge-label"><span>0 HU</span><span>grayscale calibration</span><span>max</span></div>
+  </header>
+
+  <!-- ============================================================
+       ADD A NEW TOOL: copy one <a class="tool"> block, drop the
+       tool's index.html into a matching subfolder, and update the
+       href + .path to that folder name. Bump the count above.
+       ============================================================ -->
+
+  <section>
+    <div class="section-head">
+      <h2>Trackers &amp; Workflow</h2>
+      <span class="rule"></span>
+      <span class="count">03</span>
+    </div>
+
+    <div class="grid">
+
+      <a class="tool" href="xray-habit-tracker/">
+        <div class="tool-meta"><span>tracker</span><span class="tag">daily</span></div>
+        <h3>X-ray Habit Tracker</h3>
+        <p>Log interpretation habits organized by study type. Pinnable as a Chrome tab for the reading day.</p>
+        <div class="path"><span class="arrow">›</span>xray-habit-tracker/</div>
+      </a>
+
+      <a class="tool" href="ct-chest-tracker/">
+        <div class="tool-meta"><span>tracker</span><span class="tag">timed</span></div>
+        <h3>CT Chest Study Tracker</h3>
+        <p>Time each read and export the session to CSV for review. Built for chest CT throughput.</p>
+        <div class="path"><span class="arrow">›</span>ct-chest-tracker/</div>
+      </a>
+
+      <a class="tool" href="workflow-analyzer/">
+        <div class="tool-meta"><span>analysis</span><span class="tag">timestamps</span></div>
+        <h3>Workflow Efficiency Analyzer</h3>
+        <p>Feed in X-ray interpretation timestamps to surface pace, gaps, and per-study efficiency.</p>
+        <div class="path"><span class="arrow">›</span>workflow-analyzer/</div>
+      </a>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Teaching File</h2>
+      <span class="rule"></span>
+      <span class="count">01</span>
+    </div>
+
+    <div class="grid">
+
+      <a class="tool" href="flexor-tendon-flashcards/">
+        <div class="tool-meta"><span>flashcards</span><span class="tag">MSK</span></div>
+        <h3>Flexor Tendon Lesions</h3>
+        <p>Interactive flashcard deck built from the source article. First of a folder-based deck set.</p>
+        <div class="path"><span class="arrow">›</span>flexor-tendon-flashcards/</div>
+      </a>
+
+    </div>
+  </section>
+
+  <footer>
+    <span>REV: edit index.html to add tools</span>
+    <span>hosted on GitHub Pages</span>
+  </footer>
+
+</div>
+</body>
+</html>
