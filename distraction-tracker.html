@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distraction Tracker · rad-tools</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2330;
+    --border: #2a3242;
+    --text: #d6dde8;
+    --muted: #7d8a9c;
+    --accent: #4fb3bf;      /* clinical teal */
+    --accent-dim: #2a5f66;
+    --danger: #c96a6a;
+    --radius: 10px;
+    --mono: "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+  }
+  header { margin-bottom: 20px; }
+  h1 { font-size: 20px; font-weight: 600; letter-spacing: .3px; }
+  h1 span { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* summary strip */
+  .summary {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+  .stat {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat .n { font: 600 22px var(--mono); color: var(--accent); }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+
+  /* quick-log buttons */
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .quick-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 14px 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: border-color .12s, background .12s, transform .05s;
+    text-align: left;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .quick-btn .ico { font-size: 18px; }
+  .quick-btn:hover { border-color: var(--accent-dim); background: var(--panel-2); }
+  .quick-btn:active { transform: scale(.98); }
+  .quick-btn.flash { border-color: var(--accent); background: var(--panel-2); }
+
+  /* custom entry */
+  .custom {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .custom input[type="time"], .custom input[type="text"] {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  .custom input[type="time"] { width: 120px; font-family: var(--mono); }
+  .custom input[type="text"] { flex: 1; }
+  .custom button {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: #eafcff;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .custom button:hover { background: var(--accent); color: #06282c; }
+  input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+
+  /* log table */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td {
+    text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; font-weight: 500; }
+  td.t { font-family: var(--mono); color: var(--accent); white-space: nowrap; width: 90px; }
+  td.x { width: 34px; text-align: right; }
+  .del {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 15px; padding: 2px 6px; border-radius: 6px;
+  }
+  .del:hover { color: var(--danger); background: var(--panel-2); }
+  .empty {
+    color: var(--muted); text-align: center; padding: 28px 0;
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    margin-bottom: 16px; font-size: 14px;
+  }
+
+  /* footer actions */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .actions button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .actions button:hover { color: var(--text); border-color: var(--accent-dim); }
+  .actions .clear:hover { color: var(--danger); border-color: var(--danger); }
+
+  @media (max-width: 480px) {
+    .quick-grid { grid-template-columns: 1fr 1fr; }
+    .custom { flex-wrap: wrap; }
+    .custom input[type="text"] { flex-basis: 100%; order: -1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Distraction <span>Tracker</span></h1>
+  <div class="sub" id="dateLabel"></div>
+</header>
+
+<div class="summary">
+  <div class="stat"><div class="n" id="statToday">0</div><div class="l">Today</div></div>
+  <div class="stat"><div class="n" id="statHour">0</div><div class="l">Last hour</div></div>
+  <div class="stat"><div class="n" id="statTop">—</div><div class="l">Top type</div></div>
+</div>
+
+<div class="section-label">One-tap log (stamps current time)</div>
+<div class="quick-grid" id="quickGrid"></div>
+
+<div class="section-label">Custom entry</div>
+<div class="custom">
+  <input type="time" id="cTime" step="60">
+  <input type="text" id="cType" placeholder="Type of distraction…" maxlength="60">
+  <button id="cAdd">Log</button>
+</div>
+
+<div class="section-label">Today's log</div>
+<div id="logWrap"></div>
+
+<div class="actions">
+  <button id="exportBtn">Export CSV</button>
+  <button id="clearToday" class="clear">Clear today</button>
+  <button id="clearAll" class="clear">Clear all data</button>
+</div>
+
+<script>
+(function () {
+  const KEY = 'rad-distraction-log';
+  const TYPES = [
+    { label: 'Phone',           ico: '📱' },
+    { label: 'Colleague',       ico: '🗣️' },
+    { label: 'Email',           ico: '✉️' },
+    { label: 'Pager / Epic',    ico: '📟' },
+    { label: 'Mind wandering',  ico: '💭' },
+    { label: 'Break / other',   ico: '⏸️' },
+  ];
+
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  const save = (d) => localStorage.setItem(KEY, JSON.stringify(d));
+
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const fmtTime  = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  let data = load();
+
+  // header date
+  document.getElementById('dateLabel').textContent =
+    new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // quick buttons
+  const grid = document.getElementById('quickGrid');
+  TYPES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'quick-btn';
+    b.innerHTML = '<span class="ico">' + t.ico + '</span>' + t.label;
+    b.addEventListener('click', () => {
+      addEntry(new Date().toISOString(), t.label);
+      b.classList.add('flash');
+      setTimeout(() => b.classList.remove('flash'), 350);
+    });
+    grid.appendChild(b);
+  });
+
+  // custom entry
+  const cTime = document.getElementById('cTime');
+  const cType = document.getElementById('cType');
+  const setNow = () => {
+    const n = new Date();
+    cTime.value = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  };
+  setNow();
+
+  document.getElementById('cAdd').addEventListener('click', customAdd);
+  cType.addEventListener('keydown', e => { if (e.key === 'Enter') customAdd(); });
+
+  function customAdd() {
+    const type = cType.value.trim();
+    if (!type) { cType.focus(); return; }
+    const [h, m] = (cTime.value || '00:00').split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    addEntry(d.toISOString(), type);
+    cType.value = '';
+    setNow();
+  }
+
+  function addEntry(iso, type) {
+    data.push({ ts: iso, type });
+    data.sort((a, b) => a.ts < b.ts ? -1 : 1);
+    save(data);
+    render();
+  }
+
+  function render() {
+    const today = data.filter(e => e.ts.slice(0, 10) === todayStr());
+
+    // stats
+    document.getElementById('statToday').textContent = today.length;
+    const hourAgo = Date.now() - 3600e3;
+    document.getElementById('statHour').textContent =
+      today.filter(e => new Date(e.ts).getTime() >= hourAgo).length;
+    const counts = {};
+    today.forEach(e => counts[e.type] = (counts[e.type] || 0) + 1);
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('statTop').textContent = top ? top[0] : '—';
+    document.getElementById('statTop').style.fontSize = top ? '13px' : '22px';
+
+    // table
+    const wrap = document.getElementById('logWrap');
+    if (!today.length) {
+      wrap.innerHTML = '<div class="empty">No distractions logged today. Tap a button above when one hits.</div>';
+      return;
+    }
+    let html = '<table><thead><tr><th>Time</th><th>Type of distraction</th><th></th></tr></thead><tbody>';
+    // newest first
+    [...today].reverse().forEach(e => {
+      const idx = data.indexOf(e);
+      html += '<tr><td class="t">' + fmtTime(e.ts) + '</td><td>' + escapeHtml(e.type) +
+              '</td><td class="x"><button class="del" data-i="' + idx + '" title="Delete entry">✕</button></td></tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('.del').forEach(btn =>
+      btn.addEventListener('click', () => {
+        data.splice(Number(btn.dataset.i), 1);
+        save(data); render();
+      }));
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // export all data as CSV
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    if (!data.length) return;
+    const rows = [['date','time','type']];
+    data.forEach(e => {
+      const d = new Date(e.ts);
+      rows.push([e.ts.slice(0,10), fmtTime(e.ts), '"' + e.type.replace(/"/g,'""') + '"']);
+    });
+    const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'distraction-log-' + todayStr() + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById('clearToday').addEventListener('click', () => {
+    if (!confirm('Delete all of today\'s entries?')) return;
+    data = data.filter(e => e.ts.slice(0, 10) !== todayStr());
+    save(data); render();
+  });
+
+  document.getElementById('clearAll').addEventListener('click', () => {
+    if (!confirm('Delete ALL logged data (all days)? This cannot be undone.')) return;
+    data = []; save(data); render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
